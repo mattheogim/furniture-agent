@@ -1,5 +1,7 @@
 # Furniture Finder Agent
 
+[![Live demo](https://img.shields.io/badge/live-furniture--agent.vercel.app-black?style=flat-square)](https://furniture-agent.vercel.app)
+
 A furniture research agent built for a Vancouver move. It analyzes the user's taste, collects options as broadly as possible across every relevant platform, then uses Tinder-style feedback to learn what the user actually loves — so recommendations get more accurate with every reaction.
 
 ## What It Does
