@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Furniture Agent Proof of Concept</title>
+  <style>
+    /* Styling for a basic, aesthetic mockup of the flow */
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    header {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      background: linear-gradient(to right, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    /* Card Layouts */
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155;
+      display: none; /* hidden by default */
+      animation: fadeIn 0.4s ease-out;
+    }
+    .card.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tinder Card */
+    .tinder-area {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: #334155;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .tinder-img {
+      width: 100%;
+      height: 250px;
+      background-color: #475569;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3rem;
+    }
+    .tinder-info {
+      padding: 15px;
+      flex: 1;
+    }
+    .tinder-info h3 { margin: 0 0 5px 0; font-size: 1.2rem; }
+    .tinder-info p { margin: 0; color: #94a3b8; font-size: 0.9rem; }
+    .tinder-price {
+      font-weight: bold;
+      color: #34d399;
+      margin-top: 5px;
+    }
+
+    .tinder-actions {
+      display: flex;
+      justify-content: space-around;
+      padding: 15px;
+      background: #0f172a;
+    }
+    button {
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s, filter 0.2s;
+    }
+    button:hover {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+    .btn-no { background: #ef4444; color: white; }
+    .btn-maybe { background: #f59e0b; color: white; }
+    .btn-yes { background: #10b981; color: white; }
+    .btn-next { background: #6366f1; color: white; border-radius: 8px; width: 100%; height: auto; padding: 10px; font-weight: bold; font-size: 1rem; margin-top: 15px; }
+
+    /* Budget Dashboard */
+    .budget-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    .budget-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: #0f172a;
+      border-radius: 8px;
+      border-left: 4px solid #34d399;
+    }
+    .budget-item.pending {
+      border-left-color: #f59e0b;
+    }
+    .budget-item .title {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .budget-item .meta {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .budget-item .price {
+      font-weight: bold;
+      color: #f8fafc;
+    }
+
+    .log {
+      font-family: monospace;
+      background: #000;
+      color: #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      height: 150px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Agent Prototype: Flow Validation</h1>
+  </header>
+
+  <div class="container">
+    
+    <!-- Step 1: Initialization -->
+    <div class="card active" id="step-init">
+      <h2>1. Style & Budget Initialization</h2>
+      <p>Simulating Intake + Style Analysis + Budget Setting.</p>
+      <button class="btn-next" onclick="startFlow()">Combine & Initialize Data</button>
+    </div>
+
+    <!-- Step 2: Tinder UX -->
+    <div class="card" id="step-tinder">
+      <h2>2. Personalization (Tinder UX)</h2>
+      <p>Reviewing item: <span id="current-category" style="color:#818cf8; font-weight:bold;">Sofa</span></p>
+      
+      <div class="tinder-area">
+        <div class="tinder-img" id="t-img">🛋️</div>
+        <div class="tinder-info">
+          <h3 id="t-title">IKEA KIVIK Beige</h3>
+          <p id="t-meta">Solid Oak legs, Linen Fabric</p>
+          <div class="tinder-price" id="t-price">$799 (Budget: $1000)</div>
+        </div>
+        <div class="tinder-actions">
+          <button class="btn-no" onclick="react('NO')">✖</button>
+          <button class="btn-maybe" onclick="react('MAYBE')">❓</button>
+          <button class="btn-yes" onclick="react('YES')">✔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Budget Dashboard Update -->
+    <div class="card" id="step-budget">
+      <h2>3. Live Budget Tracker (Per-Furniture)</h2>
+      <div class="budget-grid" id="budget-list">
+        <!-- Injected via JS -->
+      </div>
+      <button class="btn-next" onclick="resetFlow()">Restart Flow</button>
+    </div>
+
+    <!-- System Logs -->
+    <div class="card active" style="margin-top:20px;">
+      <h2>System Logs (Flow Trace)</h2>
+      <div class="log" id="sys-log">
+        [SYSTEM] Agent initialized. Ready to test.<br>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function log(msg) {
+      const el = document.getElementById('sys-log');
+      el.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // Agent State
+    let state = {
+      budget_tracker: {
+        total: { limit: 2500, used: 0 },
+        per_furniture: {
+          "거실_소파": { limit: 1000, best_candidate: null, candidate_price: 0, status: "pending", searches: 0 },
+          "거실_테이블": { limit: 300, best_candidate: null, candidate_price: 0, status: "pending", searches: 0 },
+          "침실_프레임": { limit: 800, best_candidate: null, candidate_price: 0, status: "pending", searches: 0 }
+        }
+      },
+      master_list: {
+        "거실_소파": [
+          { name: "IKEA KIVIK Beige", price: 799, meta: "New | Fabric", icon: "🛋️" },
+          { name: "FB Used Sectional", price: 350, meta: "Used | Leather", icon: "🛋️" },
+          { name: "Structube Copen", price: 899, meta: "New | Modern", icon: "🛋️" }
+        ],
+        "거실_테이블": [
+          { name: "LISTERBY Oak", price: 229, meta: "New | Solid Wood", icon: "🪑" },
+          { name: "FB Round Glass", price: 80, meta: "Used | Glass Top", icon: "🪑" }
+        ],
+        "침실_프레임": [
+          { name: "Used Oak Frame", price: 350, meta: "Used | Solid Wood", icon: "🛏️" }
+        ]
+      },
+      queue: [],
+      currentItem: null,
+      currentCat: null
+    };
+
+    function startFlow() {
+      // Transition from step 1 to 2
+      document.getElementById('step-init').classList.remove('active');
+      document.getElementById('step-tinder').classList.active = true;
+      document.getElementById('step-tinder').style.display = 'block';
+
+      log("Intake combined with Style Analysis.");
+      log("Budget Tracker initialized per_furniture.");
+      log("Research spawned and populated Master List.");
+
+      // Setup Queue
+      state.queue = [];
+      for(let cat in state.master_list) {
+        // Enqueue only the first item of each category for Tinder UX initially
+        state.queue.push({ category: cat, ...state.master_list[cat][0], index: 0 });
+      }
+
+      nextTinderItem();
+      renderBudget();
+    }
+
+    function nextTinderItem() {
+      if(state.queue.length === 0) {
+        log("All Tinder UX items reviewed. Finalizing Organization...");
+        document.getElementById('step-tinder').style.display = 'none';
+        document.getElementById('step-budget').classList.add('active');
+        renderBudget();
+        return;
+      }
+
+      const item = state.queue.shift();
+      state.currentItem = item;
+      state.currentCat = item.category;
+
+      document.getElementById('current-category').innerText = item.category;
+      document.getElementById('t-img').innerText = item.icon;
+      document.getElementById('t-title').innerText = item.name;
+      document.getElementById('t-meta').innerText = item.meta;
+      document.getElementById('t-price').innerText = `$${item.price} (Limit: $${state.budget_tracker.per_furniture[item.category].limit})`;
+      
+      log(`Displaying: ${item.name} (${item.category})`);
+    }
+
+    function react(action) {
+      log(`User reacted: ${action} for ${state.currentItem.name}`);
+
+      const catObj = state.budget_tracker.per_furniture[state.currentCat];
+
+      if(action === 'YES') {
+        catObj.best_candidate = state.currentItem.name;
+        catObj.candidate_price = state.currentItem.price;
+        catObj.status = "committed";
+        log(`Confirmed ${state.currentItem.name}. Updating preferences profile + budget.`);
+        nextTinderItem();
+      } 
+      else if(action === 'NO') {
+        log(`Rejected ${state.currentItem.name}. Excluding features. Fetching next in category if available.`);
+        // try to find alternative inside the master list immediately
+        const list = state.master_list[state.currentCat];
+        let nextIndex = state.currentItem.index + 1;
+        if(nextIndex < list.length) {
+          state.queue.unshift({ category: state.currentCat, ...list[nextIndex], index: nextIndex });
+        } else {
+          log(`Out of options for ${state.currentCat}. Generating Research Signal!`);
+          catObj.status = "needs_research";
+        }
+        nextTinderItem();
+      }
+      else if(action === 'MAYBE') {
+        log(`Maybe! Checking internal master list first to prevent infinite loop...`);
+        const list = state.master_list[state.currentCat];
+        let nextIndex = state.currentItem.index + 1;
+        
+        // Fix for contradiction #4: Check existing list first before searching online
+        if(nextIndex < list.length) {
+          log(`Found comparable item locally in Validator cache. Enqueueing.`);
+          state.queue.unshift({ category: state.currentCat, ...list[nextIndex], index: nextIndex });
+        } else {
+          if (catObj.searches < 2) {
+             catObj.searches += 1;
+             log(`No more items in cache. Executing 03_research (Search count: ${catObj.searches}/2).`);
+             // Simulate new items coming in
+             list.push({ name: "NEW GENERATED ITEM", price: catObj.limit * 0.9, meta: "New | Magic", icon: "✨" });
+             state.queue.unshift({ category: state.currentCat, ...list[nextIndex], index: nextIndex });
+          } else {
+             log(`Search limit reached (2/2). Cannot search anymore. Moving on.`);
+             catObj.status = "search_exhausted";
+          }
+        }
+        nextTinderItem();
+      }
+
+      renderBudget();
+    }
+
+    function renderBudget() {
+      const bList = document.getElementById('budget-list');
+      bList.innerHTML = '';
+      
+      let totalUsed = 0;
+
+      for(let cat in state.budget_tracker.per_furniture) {
+        const data = state.budget_tracker.per_furniture[cat];
+        
+        let statusText = data.status === 'committed' ? '✅ Selected' : (data.status === 'needs_research' ? '🔍 Need Research' : '🟡 Pending');
+        let cssClass = data.status === 'committed' ? '' : 'pending';
+        let titleBlock = data.best_candidate ? data.best_candidate : 'No item selected';
+        
+        totalUsed += data.candidate_price || 0;
+
+        bList.innerHTML += `
+          <div class="budget-item ${cssClass}">
+            <div>
+              <div class="meta">${cat}</div>
+              <div class="title">${titleBlock} <span style="font-weight:normal; font-size:0.8rem">(${statusText})</span></div>
+            </div>
+            <div class="price">
+              $${data.candidate_price} / $${data.limit}
+            </div>
+          </div>
+        `;
+      }
+
+      bList.innerHTML += `
+        <div style="margin-top: 15px; border-top: 1px solid #334155; padding-top:15px; text-align:right;">
+           Estimated Total: <span style="color:#34d399; font-weight:bold">$${totalUsed}</span> / $${state.budget_tracker.total.limit}
+        </div>
+      `;
+    }
+
+    function resetFlow() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
